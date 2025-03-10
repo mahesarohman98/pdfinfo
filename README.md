@@ -5,7 +5,7 @@ A simple Go library focused on extracting metadata from PDF files.
 ## Installation
 
 ```sh
-go get github.com/mahesarohman/pdfinfo
+go get github.com/mahesarohman98/pdfinfo
 
 ```
 ## Usage
@@ -15,7 +15,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/mahesarohman/pdfinfo"
+	"github.com/mahesarohman98/pdfinfo"
 )
 
 func main() {
@@ -25,10 +25,10 @@ func main() {
 		return
 	}
 
-	fmt.Println("Title:", info.Title)
-	fmt.Println("Author:", info.Author)
-	fmt.Println("Creation Date:", info.CreationDate)
-	fmt.Println("Modification Date:", info.ModDate)
+	fmt.Println("Title:", info["Title"])
+	fmt.Println("Author:", info["Author"])
+	fmt.Println("Creation Date:", info["CreationDate"])
+	fmt.Println("Modification Date:", info["ModDate"])
 }
 
 ```
