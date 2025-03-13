@@ -25,10 +25,8 @@ func main() {
 		return
 	}
 
-	fmt.Println("Title:", info["Title"])
-	fmt.Println("Author:", info["Author"])
-	fmt.Println("Creation Date:", info["CreationDate"])
-	fmt.Println("Modification Date:", info["ModDate"])
+	fmt.Println("Title:", info.Key("Title").Text())
+	fmt.Println("Author:", info.Key("Author").Text())
 }
 
 ```

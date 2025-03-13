@@ -144,7 +144,7 @@ func (br *BuffReader) readArray() array {
 	for {
 		c := br.readByte()
 		br.unreadByte()
-		if c == ']' {
+		if c == ']' || isDelim(c) {
 			break
 		}
 		values = append(values, br.readKeyword())
@@ -256,7 +256,7 @@ func (br *BuffReader) readObject() (object, error) {
 		// skip FEFF
 		// example:
 		// <FEFF00480041004C>
-		br.changeOffset(br.i + 3)
+		br.changeOffset(br.i - 1)
 		return br.readHexString(), nil
 	case '(':
 		return br.readLiteralString(), nil

@@ -9,34 +9,72 @@ import (
 )
 
 // Extract extracts metadata from a PDF file.
-func Extract(file string) (dict, error) {
+func Extract(file string) (Info, error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return nil, err
+		return Info{}, err
 	}
 	defer f.Close()
 	fi, err := f.Stat()
 	if err != nil {
 		f.Close()
-		return nil, err
+		return Info{}, err
 	}
 	return ReadMetadata(f, fi.Size())
 }
 
 // ReadMetadata reads metadata from a PDF file.
-func ReadMetadata(f io.ReaderAt, size int64) (dict, error) {
+func ReadMetadata(f io.ReaderAt, size int64) (Info, error) {
 	pdfInfo := newPdfInfo(f, size)
 
 	if err := pdfInfo.getStartXref(); err != nil {
-		return nil, err
+		return Info{}, err
 	}
 
-	metadata, err := pdfInfo.readXref()
+	info, err := pdfInfo.readXref()
 	if err != nil {
-		return nil, err
+		return Info{}, err
 	}
 
-	return metadata, nil
+	return Info{dict: info}, nil
+}
+
+// A Info is a single PDF info dictionary.
+type Info struct {
+	dict dict
+}
+
+// Key returns the value associated with the given name key in the dictionary v.
+func (i Info) Key(name name) Value {
+	v, ok := i.dict[name]
+	if !ok {
+		return Value{object: nil}
+	}
+
+	return Value{object: v}
+}
+
+// A Value is a single PDF value, such as an integer, dictionary, or array.
+// The zero Value is a PDF null
+type Value struct {
+	object interface{}
+}
+
+// Text returns v's string value interpreted as a “text string” (defined in the PDF spec)
+// and converted to UTF-8.
+// If value not string Text returns the empty string.
+func (v Value) Text() string {
+	x, ok := v.object.(string)
+	if !ok {
+		return ""
+	}
+	if isPDFDocEncoded(x) {
+		return pdfDocDecode(x)
+	}
+	if isUTF16(x) {
+		return Utf16Decode(x[2:])
+	}
+	return x
 }
 
 // A pdfInfo is a single PDF file open for reading info / metadata.
@@ -106,7 +144,7 @@ func (p *pdfInfo) readXref() (dict, error) {
 
 		dictionary, ok := obj.(dict)
 		if !ok {
-			return dict{}, fmt.Errorf("malformed info object: info is not dictionary: %v", obj)
+			return dict{}, nil
 		}
 
 		for i, obj := range dictionary {
@@ -148,7 +186,7 @@ func (p *pdfInfo) readXref() (dict, error) {
 
 	dictionary, ok := obj.(dict)
 	if !ok {
-		return dict{}, fmt.Errorf("error: read metadata dictionary")
+		return dict{}, nil
 	}
 
 	for i, obj := range dictionary {
