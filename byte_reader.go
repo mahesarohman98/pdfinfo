@@ -237,6 +237,9 @@ func (br *BuffReader) readObjectPtr() (objptr, error) {
 func (br *BuffReader) readObject() (object, error) {
 	for {
 		c := br.readByte()
+		if br.i >= br.size {
+			return nil, nil
+		}
 		if !isSpace(c) {
 			br.unreadByte()
 			break

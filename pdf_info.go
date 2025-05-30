@@ -100,6 +100,11 @@ func (p *pdfInfo) readObject(object objptr, objectOffset int64) (object, error) 
 		buf,
 		[]byte(found),
 	)
+
+	if objectIndex < 0 {
+		return dict{}, fmt.Errorf("object %d %d not found", object.id, object.gen)
+	}
+
 	buffReader := newBuffReader(buf)
 	if err := buffReader.changeOffset(objectIndex + len(found)); err != nil {
 		return dict{}, err

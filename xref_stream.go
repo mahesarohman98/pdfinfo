@@ -1,6 +1,7 @@
 package pdfinfo
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -27,6 +28,7 @@ func (x *xrefStream) getInfo() (objptr, int, error) {
 	buffReader := newBuffReader(buf)
 
 	infoObject := objptr{}
+	found := 0
 	for {
 		ObjName := buffReader.readName()
 		if ObjName == "" {
@@ -36,6 +38,7 @@ func (x *xrefStream) getInfo() (objptr, int, error) {
 			if err != nil {
 				return objptr{}, 0, err
 			}
+			found++
 		} else if ObjName == "W" {
 			values := buffReader.readArray()
 			if len(values) != 3 {
@@ -48,8 +51,13 @@ func (x *xrefStream) getInfo() (objptr, int, error) {
 				}
 				x.width[i] = w
 			}
+			found++
 			break
 		}
+	}
+
+	if found != 2 {
+		return objptr{}, 0, errors.New("error info object not found")
 	}
 
 	return infoObject, x.GetObjectOffset(infoObject), nil
